@@ -91,25 +91,57 @@ router.post("/:id/edit/", async function(req, res, next) {
 
 /** Handle adding a new reservation. */
 
-router.post("/:id/add-reservation/", async function(req, res, next) {
+router.post("/:id/add-reservation/", async function (req, res, next) {
   try {
     const customerId = req.params.id;
     const startAt = new Date(req.body.startAt);
-    const numGuests = req.body.numGuests;
-    const notes = req.body.notes;
+    const numGuests = parseInt(req.body.numGuests, 10);
+    const notes = req.body.notes || null;
 
-    const reservation = new Reservation({
+    // Create a new Reservation instance
+    const newReservation = new Reservation({
       customerId,
       startAt,
       numGuests,
-      notes
+      notes,
     });
-    await reservation.save();
 
+    // Save the reservation to the database
+    await newReservation.save();
+
+    // Redirect to the customer details page
     return res.redirect(`/${customerId}/`);
   } catch (err) {
-    return next(err);
+    console.error("Error saving reservation:", err);
+    return next(err); // Pass error to middleware
   }
 });
+
+
+
+
+// add flash message after the reservation
+// router.post("/reservations", async (req, res, next) => {
+//   try {
+//     const newReservation = new Reservation({
+//       customerId: req.body.customerId,
+//       numGuests: req.body.numGuests,
+//       startAt: new Date(req.body.startAt),
+//       notes: req.body.notes || null,
+//     });
+
+//     await newReservation.save();
+
+//     // Set a success flash message
+//     req.flash("success", "Reservation created successfully!");
+
+//     // Redirect to the customer details page
+//     res.redirect(`/customers/${newReservation.customerId}`);
+//   } catch (err) {
+//     // Set an error flash message
+//     req.flash("error", "Failed to create reservation. Please try again.");
+//     res.redirect("back"); // Redirect back to the form
+//   }
+// });
 
 module.exports = router;
